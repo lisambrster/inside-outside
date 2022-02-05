@@ -75,12 +75,11 @@ for iangle in range(0,360,5):
         # create new point at 1/r, theta
         invr = 1500 - r
         theta = iangle_rad
-        inv_points[i,0] = invr * math.cos(theta) + by
-        inv_points[i,1] = invr  * math.sin(theta) + bx
-        print('angle (deg), point, theta (rad), r ',iangle, pt[1:], theta, r)
-        print('inv point ',inv_points[i,:])
-
-
+        inv_points[i,0] = invr * math.cos(theta)
+        inv_points[i,1] = invr  * math.sin(theta)
+        if (i == 10):
+            print('angle (deg), point, theta (rad), r ',iangle, pt[1:], theta, r)
+            print('inv point ',inv_points[i,:])
         i = i + 1
 
 # repeat the first point in the last position so it is a closed polygon
@@ -96,22 +95,26 @@ print(points.shape)
 hull = ConvexHull(inv_points)
 
 # invert points in convex hull
+i = 0
 for ivertex in hull.vertices:
    d = dist(inv_points[ivertex, 0], inv_points[ivertex, 1], 0, 0)
-   norm_x = (inv_points[ivertex,0] - by)/d
-   norm_y = (inv_points[ivertex,1] - bx)/d
+   norm_x = (inv_points[ivertex,0] )/d
+   norm_y = (inv_points[ivertex,1] )/d
    theta = math.atan2( norm_y , norm_x )
-   print('ivertex, r, theta, inv_x, inv_y ', ivertex, d, theta, inv_points[ivertex, 0], inv_points[ivertex, 1])
-   inv_points[ivertex,0] = (1500 - d) * math.cos(theta)
-   inv_points[ivertex,1] = (1500 - d) * math.sin(theta)
-   print('inside hull ', ivertex, inv_points[ivertex, 0], inv_points[ivertex, 1])
+   if (ivertex == 10): # this looks right
+    print('ivertex, r, theta, inv_x, inv_y ', ivertex, d, theta, inv_points[ivertex, 0], inv_points[ivertex, 1])
+   inv_points[ivertex,0] = ( 1500-d) * math.cos(theta) + by
+   inv_points[ivertex,1] = ( 1500-d) * math.sin(theta) + bx
+   if (ivertex == 10): # this looks wrong - should be (1.2, 129) but is (44, 121)
+    print('inside hull ', ivertex, inv_points[ivertex, 0], inv_points[ivertex, 1])
+   i = i + 1
 
 
 # now plot inverted simplices
 d,h,w = label_img.shape
 
 for vertex in hull.vertices:
-    plt.plot(inv_points[hull.vertices, 1] + bx , h - inv_points[hull.vertices, 0] - by, 'r--', lw = 2)
+    plt.plot(inv_points[hull.vertices, 1]  , h - (inv_points[hull.vertices, 0] ), 'r--', lw = 2)
 
 plt.plot(points[:,1], h - points[:,0], 'o-')
 #plt.plot(points[hull.vertices[0],0], points[hull.vertices[0],1], 'ro')
